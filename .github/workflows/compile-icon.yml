@@ -4,17 +4,18 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "MyIcon.icon/**"
+      - "SPVedabase.icon/**"
       - ".github/workflows/compile-icon.yml"
 
 env:
-  ICON_NAME: MyIcon   # must match your .icon folder name (without .icon)
+  ICON_NAME: SPVedabase
 
 jobs:
   build:
     runs-on: macos-26
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Select Xcode 26
         run: |
@@ -25,16 +26,22 @@ jobs:
 
       - name: Compile icon
         run: |
-          mkdir out
+          mkdir -p out
           xcrun actool "$ICON_NAME.icon" --compile out \
-            --output-format human-readable-text --notices --warnings --errors \
+            --output-format human-readable-text \
+            --notices \
+            --warnings \
+            --errors \
             --output-partial-info-plist out/partial.plist \
-            --app-icon "$ICON_NAME" --include-all-app-icons \
-            --target-device mac --minimum-deployment-target 26.0 \
+            --app-icon "$ICON_NAME" \
+            --include-all-app-icons \
+            --target-device mac \
+            --minimum-deployment-target 26.0 \
             --platform macosx
+
           ls -la out
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: icon-output
           path: out/
