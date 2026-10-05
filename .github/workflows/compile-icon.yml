@@ -1,0 +1,40 @@
+name: Compile icon
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "MyIcon.icon/**"
+      - ".github/workflows/compile-icon.yml"
+
+env:
+  ICON_NAME: MyIcon   # must match your .icon folder name (without .icon)
+
+jobs:
+  build:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        run: |
+          XC=$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)
+          echo "Using $XC"
+          sudo xcode-select -s "$XC"
+          xcodebuild -version
+
+      - name: Compile icon
+        run: |
+          mkdir out
+          xcrun actool "$ICON_NAME.icon" --compile out \
+            --output-format human-readable-text --notices --warnings --errors \
+            --output-partial-info-plist out/partial.plist \
+            --app-icon "$ICON_NAME" --include-all-app-icons \
+            --target-device mac --minimum-deployment-target 26.0 \
+            --platform macosx
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: icon-output
+          path: out/
